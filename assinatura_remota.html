@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integração de Assinatura | Grupo Zynsa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            background-color: #09090b; 
+            color: white; 
+            font-family: 'Inter', sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        #painel-assinatura { 
+            background-color: white; 
+            border-radius: 1rem; 
+            border: 2px solid #27272a; 
+            cursor: crosshair; 
+            touch-action: none; /* Impede a tela do celular de rolar */
+            width: 100%;
+            height: 250px;
+        }
+
+        .termos-scroll::-webkit-scrollbar { width: 6px; }
+        .termos-scroll::-webkit-scrollbar-track { background: #121214; border-radius: 10px; }
+        .termos-scroll::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="tela-termos" style="display: flex;" class="w-full max-w-md bg-[#121214] border border-[#222226] p-6 rounded-3xl shadow-2xl flex-col">
+        
+        <div class="text-center mb-6">
+            <img src="logo-zynsa.png" alt="Grupo Zynsa" class="h-12 mx-auto object-contain mb-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <h1 style="display: none;" class="text-2xl font-black tracking-widest uppercase text-white items-center justify-center gap-2">
+                <span class="text-blue-500">⚡</span> GRUPO ZYNSA
+            </h1>
+            <p class="text-[10px] text-zinc-400 font-bold uppercase mt-1 tracking-widest">Integração de Assinatura Digital</p>
+        </div>
+
+        <div class="mb-6">
+            <h2 class="text-xs text-blue-400 font-black uppercase tracking-widest mb-3">Identificação do Usuário</h2>
+            <p class="text-[10px] text-zinc-400 mb-3">Selecione o seu perfil:</p>
+            
+            <div class="space-y-3">
+                <label class="flex items-center space-x-3 bg-zinc-900/50 p-3 rounded-xl border border-zinc-800 cursor-pointer hover:bg-zinc-800 transition-all">
+                    <input type="radio" name="perfil" value="cliente" checked class="w-4 h-4 text-blue-600 bg-zinc-900 border-zinc-700">
+                    <span class="text-sm font-bold text-zinc-200">Cliente</span>
+                </label>
+                <label class="flex items-center space-x-3 bg-zinc-900/50 p-3 rounded-xl border border-zinc-800 cursor-pointer hover:bg-zinc-800 transition-all">
+                    <input type="radio" name="perfil" value="funcionario" class="w-4 h-4 text-blue-600 bg-zinc-900 border-zinc-700">
+                    <span class="text-sm font-bold text-zinc-200">Funcionário – Ponto Com</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <h2 class="text-xs text-blue-400 font-black uppercase tracking-widest mb-3">Termo de Uso e Assinatura Digital</h2>
+            
+            <div class="bg-zinc-900/30 border border-zinc-800 p-4 rounded-xl h-40 overflow-y-auto termos-scroll text-[11px] text-zinc-300 space-y-3">
+                <p><b>1. Aceite Eletrônico</b><br>O presente documento tem validade jurídica conforme a legislação brasileira vigente (ICP-Brasil).</p>
+                <p><b>2. Identificação e Responsabilidade</b><br>O usuário declara que as informações fornecidas são verdadeiras.</p>
+                <p><b>3. Uso da Plataforma</b><br>A plataforma do Grupo Zynsa destina-se exclusivamente para formalização de acordos e registros digitais.</p>
+                <p><b>4. Segurança das Informações</b><br>O Grupo Zynsa compromete-se a adotar medidas de segurança para proteção dos dados.</p>
+                <p><b>5. Validade do Documento</b><br>Os documentos assinados eletronicamente possuem validade legal.</p>
+                <p><b>6. Consentimento</b><br>Ao clicar em "Avançar", o usuário declara estar de acordo com todos os termos.</p>
+            </div>
+        </div>
+
+        <button onclick="avancarParaAssinatura()" class="w-full bg-blue-600 text-white font-black uppercase tracking-widest py-4 rounded-xl hover:bg-blue-500 transition-all active:scale-95 text-xs shadow-[0_0_20px_rgba(37,99,235,0.3)]">
+            Avançar e Assinar ➡️
+        </button>
+    </div>
+
+    <div id="tela-assinatura" style="display: none;" class="w-full max-w-md bg-[#121214] border border-[#222226] p-6 rounded-3xl shadow-2xl flex-col">
+        
+        <div class="text-center mb-6">
+            <img src="logo-pontocom.png" alt="Ponto Com Informática" class="h-14 mx-auto object-contain mb-2 bg-white p-2 rounded-lg" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <h1 style="display: none;" class="text-xl font-black text-blue-500 uppercase tracking-widest">Ponto Com Informática</h1>
+            <p class="text-[10px] text-zinc-400 font-bold uppercase mt-1 tracking-widest">Assine no quadro abaixo</p>
+        </div>
+
+        <div class="bg-zinc-900/50 p-2 rounded-[1.5rem] border border-zinc-800 w-full flex justify-center">
+            <canvas id="painel-assinatura"></canvas>
+        </div>
+        
+        <div class="flex gap-4 mt-6">
+            <button onclick="voltarParaTermos()" class="flex-1 bg-zinc-800 text-zinc-400 font-black uppercase py-3 rounded-xl hover:bg-zinc-700 text-[10px] tracking-widest">
+                ⬅️ Voltar
+            </button>
+            <button onclick="limparAssinatura()" class="flex-1 bg-zinc-800 text-white font-black uppercase py-3 rounded-xl border border-zinc-700 text-[10px] tracking-widest">
+                🧹 Limpar
+            </button>
+        </div>
+        
+        <button id="btn-enviar" onclick="enviarAssinatura()" class="w-full mt-4 bg-emerald-600 text-white font-black uppercase tracking-widest py-4 rounded-xl hover:bg-emerald-500 transition-all active:scale-95 text-xs shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+            Confirmar e Enviar ✅
+        </button>
+    </div>
+
+    <script>
+        // ==========================================
+        // LÓGICA DE TROCA DE TELAS
+        // ==========================================
+        function avancarParaAssinatura() {
+            document.getElementById('tela-termos').style.display = 'none';
+            document.getElementById('tela-assinatura').style.display = 'flex';
+            
+            // Corrige o tamanho do canvas para o traço sair perfeito!
+            ajustarCanvas();
+        }
+
+        function voltarParaTermos() {
+            document.getElementById('tela-assinatura').style.display = 'none';
+            document.getElementById('tela-termos').style.display = 'flex';
+        }
+
+        // ==========================================
+        // LÓGICA DA LOUSA DIGITAL (BLINDADA)
+        // ==========================================
+        const canvas = document.getElementById('painel-assinatura');
+        const ctx = canvas.getContext('2d');
+        let desenhando = false;
+        
+        function ajustarCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            // Pega o tamanho real da caixa preta em volta e aplica na lousa
+            canvas.width = rect.width - 16; 
+            canvas.height = 200; 
+            
+            ctx.strokeStyle = '#000000'; 
+            ctx.lineWidth = 4; 
+            ctx.lineJoin = 'round'; 
+            ctx.lineCap = 'round';
+        }
+
+        function pegarPosicao(evt) {
+            const rect = canvas.getBoundingClientRect();
+            if (evt.touches && evt.touches.length > 0) {
+                return { x: evt.touches[0].clientX - rect.left, y: evt.touches[0].clientY - rect.top };
+            }
+            return { x: evt.clientX - rect.left, y: evt.clientY - rect.top };
+        }
+
+        function iniciarDesenho(e) { 
+            e.preventDefault(); 
+            desenhando = true; 
+            const pos = pegarPosicao(e); 
+            ctx.beginPath(); 
+            ctx.moveTo(pos.x, pos.y); 
+            
+            // Desenha um ponto caso a pessoa só dê um toquinho na tela
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+        }
+
+        function desenhar(e) { 
+            e.preventDefault(); 
+            if(!desenhando) return;
+            const pos = pegarPosicao(e); 
+            ctx.lineTo(pos.x, pos.y); 
+            ctx.stroke(); 
+        }
+
+        function pararDesenho(e) { 
+            e.preventDefault();
+            desenhando = false; 
+        }
+
+        // Eventos para Celular e PC
+        canvas.addEventListener('touchstart', iniciarDesenho, {passive: false});
+        canvas.addEventListener('touchmove', desenhar, {passive: false});
+        canvas.addEventListener('touchend', pararDesenho, {passive: false});
+        
+        canvas.addEventListener('mousedown', iniciarDesenho);
+        canvas.addEventListener('mousemove', desenhar);
+        canvas.addEventListener('mouseup', pararDesenho);
+        canvas.addEventListener('mouseout', pararDesenho);
+
+        function limparAssinatura() { 
+            ctx.clearRect(0, 0, canvas.width, canvas.height); 
+        }
+
+        // ==========================================
+        // CONEXÃO COM A NUVEM
+        // ==========================================
+        let _supabase;
+        try {
+            const supabaseUrl = 'https://acasupxscpxozfyuoayk.supabase.co'; 
+            const supabaseKey = 'sb_publishable_E8jq-az5AfYRc_xdzybA7w_RxPGR_HF'; 
+            _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        } catch(e) {
+            console.error("Erro na conexão", e);
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+
+        async function enviarAssinatura() {
+            if(!_supabase) {
+                alert("Erro ao conectar no sistema. Verifique a internet e recarregue a página.");
+                return;
+            }
+            
+            if(!token) { 
+                alert("Erro: Este link é inválido. Peça para o atendente gerar o QR Code de novo."); 
+                return; 
+            }
+            
+            // Verifica se a pessoa rabiscou alguma coisa no quadro
+            const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            let temDesenho = false;
+            for (let i = 0; i < pixels.length; i += 4) { 
+                if (pixels[i+3] > 0) { temDesenho = true; break; } 
+            }
+
+            if(!temDesenho) {
+                alert("O quadro está vazio! Assine com o dedo antes de confirmar.");
+                return;
+            }
+
+            const btn = document.getElementById('btn-enviar');
+            btn.innerText = "Enviando... ⏳";
+            btn.disabled = true;
+
+            const base64 = canvas.toDataURL("image/png");
+
+            // Envia para o Supabase
+            const { error } = await _supabase.from('assinaturas_temp').insert([{ token: token, imagem: base64 }]);
+            
+            if(error) {
+                alert("Erro ao enviar: " + error.message);
+                btn.innerText = "Tentar de Novo";
+                btn.disabled = false;
+            } else {
+                // Sucesso Absoluto
+                document.body.innerHTML = `
+                    <div class="text-center p-8 bg-[#121214] rounded-3xl border border-[#222226] max-w-sm w-full shadow-2xl">
+                        <h1 class="text-6xl mb-4">✅</h1>
+                        <h2 class="text-xl font-black text-emerald-500 uppercase tracking-widest mb-2">Concluído!</h2>
+                        <p class="text-sm text-zinc-400 mb-6">A assinatura já foi enviada para o computador da loja.</p>
+                        <p class="text-[10px] text-blue-500 font-bold uppercase tracking-widest">Grupo Zynsa Agradece.</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
